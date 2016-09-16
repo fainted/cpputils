@@ -1,7 +1,7 @@
 /*
  * Event variable implements in C++11.
  *
- * file:   event_variable.h 
+ * file:   event_variable.h
  * date:   2016-01-03
  * author: chenhaotian93@gmail.com
  */
@@ -12,7 +12,6 @@
 #include <functional>
 #include <mutex>
 #include <ratio>
-
 
 class EventVariable {
 public:
@@ -38,10 +37,15 @@ public:
 
     // Wait with timeout.
     template<class Rep, class Period>
-    void wait_for(const std::chrono::duration<Rep, Period>& timeout) {
+    bool wait_for(const std::chrono::duration<Rep, Period>& timeout) {
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        m_condition.wait_for(lock, timeout);
+        if (m_is_set) {
+            return true;
+        }
+
+        return std::cv_status::no_timeout ==
+            m_condition.wait_for(lock, timeout);
     }
 
 private:
