@@ -30,6 +30,10 @@ public:
 
     // Wait synchronized.
     void wait() {
+        if (m_is_set) {
+            return;
+        }
+
         std::unique_lock<std::mutex> lock(m_mutex);
 
         m_condition.wait(lock);
@@ -38,11 +42,11 @@ public:
     // Wait with timeout.
     template<class Rep, class Period>
     bool wait_for(const std::chrono::duration<Rep, Period>& timeout) {
-        std::unique_lock<std::mutex> lock(m_mutex);
-
         if (m_is_set) {
             return true;
         }
+
+        std::unique_lock<std::mutex> lock(m_mutex);
 
         return std::cv_status::no_timeout ==
             m_condition.wait_for(lock, timeout);
